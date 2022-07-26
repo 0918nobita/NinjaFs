@@ -35,7 +35,29 @@ type Configuration =
             |> List.map (ConfigurationItem.display)
             |> String.concat "\n"
 
-        File.WriteAllText(filename, content)
+        File.WriteAllText(filename, content + "\n")
+
+type OutputDescriptor =
+    private
+    | OutputDescriptor of explicit: list<string> * implicit: list<string>
+
+    member this.implicit(files: list<string>) =
+        let (OutputDescriptor (explicit, _)) = this
+        OutputDescriptor(explicit = explicit, implicit = files)
+
+let output (files: list<string>) =
+    OutputDescriptor(explicit = files, implicit = [])
+
+type InputDescriptor =
+    private
+    | InputDescriptor of explicit: list<string> * implicit: list<string>
+
+    member this.implicit(files: list<string>) =
+        let (InputDescriptor (explicit, _)) = this
+        InputDescriptor(explicit = explicit, implicit = files)
+
+let input (files: list<string>) =
+    InputDescriptor(explicit = files, implicit = [])
 
 type Builder() =
     member __.Yield(_) = Configuration.empty
@@ -52,6 +74,24 @@ type Builder() =
         config.addItem (
             Rule
             <| Rule.create {| Name = name; Command = command |}
+        )
+
+    [<CustomOperation("build")>]
+    member __.Build(config: Configuration, outputs: OutputDescriptor, ruleName: string, inputs: InputDescriptor) =
+        let (OutputDescriptor (explicitOutputs, implicitOutputs)) = outputs
+        let explicitOutputs = Build.ExplicitOutputs explicitOutputs
+        let implicitOutputs = Build.ImplicitOutputs implicitOutputs
+
+        let (InputDescriptor (explicitInputs, implicitInputs)) = inputs
+        let explicitInputs = Build.ExplicitInputs explicitInputs
+        let implicitInputs = Build.ImplicitInputs implicitInputs
+
+        config.addItem (
+            Build
+            <| Build.create
+                {| Outputs = (explicitOutputs, implicitOutputs)
+                   RuleName = ruleName
+                   Inputs = (explicitInputs, implicitInputs) |}
         )
 
 let ninja = Builder()
