@@ -11,5 +11,6 @@
     <Compile Include="Deps.fs" />
     <Compile Include="Rule.fs" />
     <Compile Include="VarDecl.fs" />
+    <Compile Include="CE.fs" />
   </ItemGroup>
 </Project>
