@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NinjaFs", "src\NinjaFs.fsproj", "{D55D0639-6C77-46AB-BDF9-3D44E259BE2E}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NinjaFs.Example", "example\NinjaFs.Example.fsproj", "{2A373B44-3650-4879-AC85-3DD5EAF16134}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D55D0639-6C77-46AB-BDF9-3D44E259BE2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D55D0639-6C77-46AB-BDF9-3D44E259BE2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D55D0639-6C77-46AB-BDF9-3D44E259BE2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D55D0639-6C77-46AB-BDF9-3D44E259BE2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A373B44-3650-4879-AC85-3DD5EAF16134}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A373B44-3650-4879-AC85-3DD5EAF16134}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A373B44-3650-4879-AC85-3DD5EAF16134}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A373B44-3650-4879-AC85-3DD5EAF16134}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

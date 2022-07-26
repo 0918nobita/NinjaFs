@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>NinjaFs</AssemblyName>
+    <RootNamespace>NinjaFs</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Deps.fs" />
+    <Compile Include="VarDecl.fs" />
+  </ItemGroup>
+</Project>
