@@ -26,11 +26,28 @@ type Configuration =
         let (Configuration items) = this
         Configuration <| items @ [ configurationItem ]
 
+    member this.append((Configuration items'): Configuration) =
+        let (Configuration items) = this
+        Configuration <| items @ items'
+
 type Builder() =
-    member __.Yield(_) = Configuration.empty
+    member __.Yield(_) =
+        // printfn "yield"
+        Configuration.empty
+
+    member __.YieldFrom(config: Configuration) =
+        // printfn "yieldFrom: %A" config
+        config
+
+    member __.For(config: Configuration, f: unit -> Configuration) =
+        // printfn "for: %A" config
+        config.append <| f ()
+
+    member __.Zero() = Configuration.empty
 
     [<CustomOperation("var")>]
     member __.Var(config: Configuration, name, value) =
+        // printfn "var"
         config.addItem (
             VarDecl
             <| VarDecl.create {| Name = name; Value = value |}
@@ -38,6 +55,7 @@ type Builder() =
 
     [<CustomOperation("rule")>]
     member __.Rule(config: Configuration, name: string, command: string) =
+        // printfn "rule"
         config.addItem (
             Rule
             <| Rule.create {| Name = name; Command = command |}
@@ -45,6 +63,7 @@ type Builder() =
 
     [<CustomOperation("build")>]
     member __.Build(config: Configuration, outputs: Build.Outputs, ruleName: string, inputs: Build.Inputs) =
+        // printfn "build"
         config.addItem (
             Build
             <| Build.create
