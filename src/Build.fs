@@ -1,61 +1,55 @@
 module NinjaFs.Build
 
-type ExplicitOutputs = ExplicitOutputs of list<string>
+type Outputs = Outputs of explicit: list<string> * implicit: list<string>
 
-module ExplicitOutputs =
-    let display (ExplicitOutputs explicitOutputs) = String.concat "" explicitOutputs
+module Outputs =
+    let display outputs =
+        let (Outputs (explicit, implicit)) = outputs
+        let explicit = String.concat "" explicit
 
-type ImplicitOutputs = ImplicitOutputs of list<string>
+        let implicit =
+            (if List.isEmpty implicit then
+                 ""
+             else
+                 " | ")
+            + String.concat "" implicit
 
-module ImplicitOutputs =
-    let display (ImplicitOutputs implicitOutputs) =
-        (if List.isEmpty implicitOutputs then
-             ""
-         else
-             " | ")
-        + String.concat "" implicitOutputs
+        explicit + implicit
 
-type ExplicitInputs = ExplicitInputs of list<string>
+type Inputs = Inputs of explicit: list<string> * implicit: list<string>
 
-module ExplicitInputs =
-    let display (ExplicitInputs explicitInputs) = String.concat "" explicitInputs
+module Inputs =
+    let display inputs =
+        let (Inputs (explicit, implicit)) = inputs
+        let explicit = String.concat "" explicit
 
-type ImplicitInputs = ImplicitInputs of list<string>
+        let implicit =
+            (if List.isEmpty implicit then
+                 ""
+             else
+                 " | ")
+            + String.concat "" implicit
 
-module ImplicitInputs =
-    let display (ImplicitInputs implicitInputs) =
-        (if List.isEmpty implicitInputs then
-             ""
-         else
-             " | ")
-        + String.concat "" implicitInputs
+        explicit + implicit
 
 type T =
     private
         { RuleName: string
-          Outputs: ExplicitOutputs * ImplicitOutputs
-          Inputs: ExplicitInputs * ImplicitInputs }
+          Outputs: Outputs
+          Inputs: Inputs }
 
 let create
     (desc: {| RuleName: string
-              Outputs: ExplicitOutputs * ImplicitOutputs
-              Inputs: ExplicitInputs * ImplicitInputs |})
+              Outputs: Outputs
+              Inputs: Inputs |})
     =
     { RuleName = desc.RuleName
       Outputs = desc.Outputs
       Inputs = desc.Inputs }
 
 let display build =
-    let (explicitOutputs, implicitOutputs) = build.Outputs
+    let outputs = Outputs.display build.Outputs
 
-    let explicitOutputs = ExplicitOutputs.display explicitOutputs
+    let inputs = Inputs.display build.Inputs
 
-    let implicitOutputs = ImplicitOutputs.display implicitOutputs
-
-    let (explicitInputs, implicitInputs) = build.Inputs
-
-    let explicitInputs = ExplicitInputs.display explicitInputs
-
-    let implicitInputs = ImplicitInputs.display implicitInputs
-
-    $"build %s{explicitOutputs}%s{implicitOutputs}: %s{build.RuleName} %s{explicitInputs}%s{implicitInputs}"
+    $"build %s{outputs}: %s{build.RuleName} %s{inputs}"

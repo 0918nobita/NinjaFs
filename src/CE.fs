@@ -26,39 +26,6 @@ type Configuration =
         let (Configuration items) = this
         Configuration <| items @ [ configurationItem ]
 
-    member this.generate(?filename: string) =
-        let filename = filename |> Option.defaultValue "build.ninja"
-        let (Configuration items) = this
-
-        let content =
-            items
-            |> List.map (ConfigurationItem.display)
-            |> String.concat "\n"
-
-        File.WriteAllText(filename, content + "\n")
-
-type OutputDescriptor =
-    private
-    | OutputDescriptor of explicit: list<string> * implicit: list<string>
-
-    member this.implicit(files: list<string>) =
-        let (OutputDescriptor (explicit, _)) = this
-        OutputDescriptor(explicit = explicit, implicit = files)
-
-let output (files: list<string>) =
-    OutputDescriptor(explicit = files, implicit = [])
-
-type InputDescriptor =
-    private
-    | InputDescriptor of explicit: list<string> * implicit: list<string>
-
-    member this.implicit(files: list<string>) =
-        let (InputDescriptor (explicit, _)) = this
-        InputDescriptor(explicit = explicit, implicit = files)
-
-let input (files: list<string>) =
-    InputDescriptor(explicit = files, implicit = [])
-
 type Builder() =
     member __.Yield(_) = Configuration.empty
 
@@ -77,21 +44,53 @@ type Builder() =
         )
 
     [<CustomOperation("build")>]
-    member __.Build(config: Configuration, outputs: OutputDescriptor, ruleName: string, inputs: InputDescriptor) =
-        let (OutputDescriptor (explicitOutputs, implicitOutputs)) = outputs
-        let explicitOutputs = Build.ExplicitOutputs explicitOutputs
-        let implicitOutputs = Build.ImplicitOutputs implicitOutputs
-
-        let (InputDescriptor (explicitInputs, implicitInputs)) = inputs
-        let explicitInputs = Build.ExplicitInputs explicitInputs
-        let implicitInputs = Build.ImplicitInputs implicitInputs
-
+    member __.Build(config: Configuration, outputs: Build.Outputs, ruleName: string, inputs: Build.Inputs) =
         config.addItem (
             Build
             <| Build.create
-                {| Outputs = (explicitOutputs, implicitOutputs)
+                {| Outputs = outputs
                    RuleName = ruleName
-                   Inputs = (explicitInputs, implicitInputs) |}
+                   Inputs = inputs |}
         )
 
+    [<CustomOperation("build")>]
+    member this.Build(config: Configuration, outputs: Build.Outputs, ruleName: string, inputs: list<string>) =
+        let inputs = Build.Inputs(explicit = inputs, implicit = [])
+        this.Build(config, outputs, ruleName, inputs)
+
+    [<CustomOperation("build")>]
+    member this.Build(config: Configuration, outputs: list<string>, ruleName: string, inputs: Build.Inputs) =
+        let outputs = Build.Outputs(explicit = outputs, implicit = [])
+        this.Build(config, outputs, ruleName, inputs)
+
+    [<CustomOperation("build")>]
+    member this.Build(config: Configuration, outputs: list<string>, ruleName: string, inputs: list<string>) =
+        let outputs = Build.Outputs(explicit = outputs, implicit = [])
+        let inputs = Build.Inputs(explicit = inputs, implicit = [])
+        this.Build(config, outputs, ruleName, inputs)
+
 let ninja = Builder()
+
+type Ninja =
+    static member generate(?filename: string) : Configuration -> unit =
+        fun (Configuration items) ->
+            let filename = filename |> Option.defaultValue "build.ninja"
+
+            let content =
+                items
+                |> List.map (ConfigurationItem.display)
+                |> String.concat "\n"
+
+            File.WriteAllText(filename, content + "\n")
+
+open System.Runtime.CompilerServices
+
+[<Extension>]
+type ExplicitOutputsExtension =
+    [<Extension>]
+    static member implicitOutput(this: list<string>, files: list<string>) : Build.Outputs =
+        Build.Outputs(explicit = this, implicit = files)
+
+    [<Extension>]
+    static member implicitInput(this: list<string>, files: list<string>) : Build.Inputs =
+        Build.Inputs(explicit = this, implicit = files)
