@@ -4,7 +4,6 @@ module NinjaFs.CE
 open System.IO
 
 type ConfigurationItem =
-    private
     | VarDecl of VarDecl.T
     | Rule of Rule.T
     | Build of Build.T
@@ -19,31 +18,67 @@ module ConfigurationItem =
 type Configuration =
     private
     | Configuration of list<ConfigurationItem>
+    | DelayedConfiguration of (unit -> Configuration)
 
     static member empty = Configuration []
 
-    member this.addItem(configurationItem: ConfigurationItem) : Configuration =
-        let (Configuration items) = this
-        Configuration <| items @ [ configurationItem ]
+    static member singleton item = Configuration [ item ]
 
-    member this.append((Configuration items'): Configuration) =
-        let (Configuration items) = this
-        Configuration <| items @ items'
+    member this.force() =
+        match this with
+        | Configuration items -> items
+        | DelayedConfiguration delayedConfiguration -> (delayedConfiguration ()).force ()
+
+    member this.addItem(configurationItem: ConfigurationItem) : Configuration =
+        match this with
+        | Configuration items -> Configuration <| items @ [ configurationItem ]
+        | DelayedConfiguration f ->
+            DelayedConfiguration
+            <| fun () -> f().addItem configurationItem
+
+    member this.append(config: Configuration) =
+        match this, config with
+        | Configuration items, Configuration items' -> Configuration <| items @ items'
+        | Configuration _, DelayedConfiguration f ->
+            DelayedConfiguration
+            <| fun () -> this.append <| f ()
+        | DelayedConfiguration f, Configuration _ ->
+            DelayedConfiguration
+            <| fun () -> f().append config
+        | DelayedConfiguration f, DelayedConfiguration f' ->
+            DelayedConfiguration
+            <| fun () -> f().append <| f' ()
 
 type Builder() =
-    member __.Yield(_) =
-        // printfn "yield"
+    member __.Yield(()) =
+        // printfn "yield (unit)"
         Configuration.empty
 
+    member __.Yield(configurationItem: ConfigurationItem) =
+        // printfn "yield (ConfigurationItem)"
+        Configuration.singleton configurationItem
+
     member __.YieldFrom(config: Configuration) =
-        // printfn "yieldFrom: %A" config
+        // printfn "yieldFrom (%A)" config
         config
 
     member __.For(config: Configuration, f: unit -> Configuration) =
-        // printfn "for: %A" config
-        config.append <| f ()
+        // printfn "for"
+        let r = config.append <| f ()
+        // printfn "end for"
+        r
 
-    member __.Zero() = Configuration.empty
+    member __.Zero() =
+        // printfn "zero"
+        Configuration.empty
+
+    member __.Delay(f: unit -> Configuration) =
+        // printfn "delay"
+        DelayedConfiguration <| fun () -> f ()
+
+    member __.Combine(config: Configuration, config': Configuration) =
+        // printfn "combine"
+        config.append <| config'
 
     [<CustomOperation("var")>]
     member __.Var(config: Configuration, name, value) =
@@ -92,11 +127,11 @@ let ninja = Builder()
 
 type Ninja =
     static member generate(?filename: string) : Configuration -> unit =
-        fun (Configuration items) ->
+        fun config ->
             let filename = filename |> Option.defaultValue "build.ninja"
 
             let content =
-                items
+                config.force ()
                 |> List.map (ConfigurationItem.display)
                 |> String.concat "\n"
 

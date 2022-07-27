@@ -2,27 +2,33 @@ module NinjaFs.Example
 
 open NinjaFs
 
-ninja {
-    var "builddir" "build"
+let config = // DelayedConfiguration
+    ninja {
+        var "builddir" "build"
 
-    rule "compile" "gcc -c -o $out $in"
+        rule "compile" "gcc -c -o $out $in"
 
-    rule "link" "gcc -o $out $in"
+        rule "link" "gcc -o $out $in"
 
-    yield!
-        if false then
-            ninja { build [ "build/main.o" ] "compile" [ "main.c" ] }
-        else
-            ninja { build [ "build/main.o" ] "compile" ([ "main.c" ].implicitInput [ "lib.h" ]) }
-}
-|> Ninja.generate ()
+        yield VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |})
+
+        yield!
+            if false then
+                ninja { build [ "build/main.o" ] "compile" [ "main.c" ] }
+            else
+                ninja { build [ "build/main.o" ] "compile" ([ "main.c" ].implicitInput [ "lib.h" ]) }
+    }
+
+// printfn "config |> Ninja.generate ()"
+config |> Ninja.generate ()
 
 (*
+__.Delay (fun () ->
     __.For (
         __.Rule (
             __.Rule (
                 __.Var (
-                    (__.Yield null)
+                    (__.Yield ())
                     "builddir"
                     "build"
                 )
@@ -33,24 +39,32 @@ ninja {
             "gcc -o $out $in"
         )
         fun () ->
-            if false
-            then
-                __.YieldFrom (
-                    __.Build (
-                        (__.Yield null)
-                        [ "build/main.o" ]
-                        "compile"
-                        [ "main.c" ]
-                    )
+            __.Combine (
+                __.Delay (fun () ->
+                    __.Yield (VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |}))
                 )
-            else
-                __.YieldFrom (
-                    __.Build (
-                        (__.Yield null)
-                        [ "build/main.o" ]
-                        "compile"
-                        ([ "main.c" ].implicitInput [ "lib.h" ])
-                    )
+                __.YieldFrom
+                    (if false
+                    then
+                        __.Delay (fun () ->
+                            __.Build (
+                                (__.Yield ())
+                                [ "main.o" ]
+                                "compile"
+                                [ "main.c" ]
+                            )
+                        )
+                    else
+                        __.Delay (fun () ->
+                            __.Build (
+                                (__.Yield ())
+                                [ "main.o "]
+                                "compile"
+                                ([ "main.c" ].implicitInput [ "lib.h" ])
+                            )
+                        ))
                 )
+            )
     )
+)
 *)
