@@ -1,7 +1,5 @@
-module NinjaFs.Example
+module NinjaFs.Example.Program
 
-open FSharp.Quotations
-open FSharp.Quotations.Patterns
 open NinjaFs
 
 let expr =
@@ -14,6 +12,21 @@ let expr =
 
         yield VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |})
     }
+
+open Thoth.Json.Net
+open NinjaFs.Example.Ast
+
+Encode.toString
+    2
+    (((NewUnionCase
+        {| Name = "VarDecl"
+           Fields = Map.empty |})
+    :> IExpr)
+        .encoder ())
+|> printfn "%A"
+
+open FSharp.Quotations
+open FSharp.Quotations.Patterns
 
 let rec printExpr (expr: Expr) : string =
     match expr with

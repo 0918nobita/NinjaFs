@@ -2,9 +2,18 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>NinjaFs.Example</AssemblyName>
+    <RootNamespace>NinjaFs.Example</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ast/Expr.fs" />
+    <Compile Include="ast/BuilderKeyword.fs" />
+    <Compile Include="ast/FunctionCall.fs" />
+    <Compile Include="ast/MethodCall.fs" />
+    <Compile Include="ast/NewUnionCase.fs" />
+    <Compile Include="ast/StringLiteral.fs" />
+    <Compile Include="ast/UnitLiteral.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
@@ -14,5 +23,6 @@
 
   <ItemGroup>
     <PackageReference Include="Fantomas.Core" Version="5.0.0-beta-004" />
+    <PackageReference Include="Thoth.Json.Net" Version="8.0.0" />
   </ItemGroup>
 </Project>
