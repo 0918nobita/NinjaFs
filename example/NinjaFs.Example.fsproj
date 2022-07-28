@@ -11,4 +11,8 @@
   <ItemGroup>
     <ProjectReference Include="../src/NinjaFs.fsproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fantomas.Core" Version="5.0.0-beta-004" />
+  </ItemGroup>
 </Project>
