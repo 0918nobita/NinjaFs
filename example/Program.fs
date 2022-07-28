@@ -1,8 +1,16 @@
 module NinjaFs.Example
 
+(*
+Fantomas.Core.CodeFormatter.FormatDocumentAsync(false, "module Program\nlet a = 2+2")
+|> Async.RunSynchronously
+|> printfn "[result]\n%s"
+*)
+
+open FSharp.Quotations
+open FSharp.Quotations.Patterns
 open NinjaFs
 
-let config = // DelayedConfiguration
+let expr =
     ninja {
         var "builddir" "build"
 
@@ -12,59 +20,25 @@ let config = // DelayedConfiguration
 
         yield VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |})
 
+    (*
         yield!
             if false then
                 ninja { build [ "build/main.o" ] "compile" [ "main.c" ] }
             else
                 ninja { build [ "build/main.o" ] "compile" ([ "main.c" ].implicitInput [ "lib.h" ]) }
+        *)
     }
 
-// printfn "config |> Ninja.generate ()"
-config |> Ninja.generate ()
+let printExpr (expr: Expr<_>) =
+    match expr with
+    | Call (object, method, args) ->
+        printfn "call"
+        printfn "    object: %A" object
+        printfn "    method: %A" method
+        printfn "    args: %A" args
+    | _ -> failwith $"Unknown expression: %O{expr}"
 
-(*
-__.Delay (fun () ->
-    __.For (
-        __.Rule (
-            __.Rule (
-                __.Var (
-                    (__.Yield ())
-                    "builddir"
-                    "build"
-                )
-                "compile"
-                "gcc -c -o $out $in"
-            )
-            "link"
-            "gcc -o $out $in"
-        )
-        fun () ->
-            __.Combine (
-                __.Delay (fun () ->
-                    __.Yield (VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |}))
-                )
-                __.YieldFrom
-                    (if false
-                    then
-                        __.Delay (fun () ->
-                            __.Build (
-                                (__.Yield ())
-                                [ "main.o" ]
-                                "compile"
-                                [ "main.c" ]
-                            )
-                        )
-                    else
-                        __.Delay (fun () ->
-                            __.Build (
-                                (__.Yield ())
-                                [ "main.o "]
-                                "compile"
-                                ([ "main.c" ].implicitInput [ "lib.h" ])
-                            )
-                        ))
-                )
-            )
-    )
-)
-*)
+printExpr expr
+
+// printfn "config |> Ninja.generate ()"
+// config |> Ninja.generate ()
