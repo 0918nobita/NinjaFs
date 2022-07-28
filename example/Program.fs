@@ -1,11 +1,5 @@
 module NinjaFs.Example
 
-(*
-Fantomas.Core.CodeFormatter.FormatDocumentAsync(false, "module Program\nlet a = 2+2")
-|> Async.RunSynchronously
-|> printfn "[result]\n%s"
-*)
-
 open FSharp.Quotations
 open FSharp.Quotations.Patterns
 open NinjaFs
@@ -19,26 +13,57 @@ let expr =
         rule "link" "gcc -o $out $in"
 
         yield VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |})
-
-    (*
-        yield!
-            if false then
-                ninja { build [ "build/main.o" ] "compile" [ "main.c" ] }
-            else
-                ninja { build [ "build/main.o" ] "compile" ([ "main.c" ].implicitInput [ "lib.h" ]) }
-        *)
     }
 
-let printExpr (expr: Expr<_>) =
+let rec printExpr (expr: Expr) : string =
     match expr with
     | Call (object, method, args) ->
-        printfn "call"
-        printfn "    object: %A" object
-        printfn "    method: %A" method
-        printfn "    args: %A" args
+        match object with
+        | Some object ->
+            let object = printExpr object
+
+            let args =
+                args
+                |> List.map (printExpr >> sprintf "(%s)")
+                |> String.concat ", "
+
+            $"%s{object}.%s{method.Name}(%s{args})"
+        | None ->
+            let args =
+                args
+                |> List.map (printExpr >> sprintf "(%s)")
+                |> String.concat " "
+
+            $"%s{method.Name} %s{args}"
+    | ValueWithName (_value, _ty, "builder@") -> "builder"
+    | Lambda (var, body) ->
+        let body = printExpr body
+        $"fun {var.Name} -> {body}"
+    | Value (obj, ty) when obj = () && ty = typeof<unit> -> "()"
+    | Value (obj, ty) when ty = typeof<string> ->
+        let str = obj :?> string
+        $"\"{str}\""
+    | NewUnionCase (unionCaseInfo, fields) ->
+        let fields =
+            fields
+            |> List.map (printExpr >> sprintf "(%s)")
+            |> String.concat ", "
+
+        $"%s{unionCaseInfo.Name}(%s{fields})"
+    | NewRecord (ty, fields) ->
+        let fields =
+            ty.GetProperties()
+            |> Array.indexed
+            |> Array.map (fun (i, property) ->
+                let value = printExpr fields[i]
+                $"%s{property.Name} = (%s{value})")
+            |> String.concat "; "
+
+        $"{{| %s{fields} |}}"
     | _ -> failwith $"Unknown expression: %O{expr}"
 
-printExpr expr
+let printedExpr = printExpr expr
 
-// printfn "config |> Ninja.generate ()"
-// config |> Ninja.generate ()
+Fantomas.Core.CodeFormatter.FormatDocumentAsync(false, printedExpr)
+|> Async.RunSynchronously
+|> printfn "%s"
