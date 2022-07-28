@@ -18,71 +18,44 @@ module ConfigurationItem =
 type Configuration =
     private
     | Configuration of list<ConfigurationItem>
-    | DelayedConfiguration of (unit -> Configuration)
 
     static member empty = Configuration []
 
     static member singleton item = Configuration [ item ]
 
-    member this.force() =
-        match this with
-        | Configuration items -> items
-        | DelayedConfiguration delayedConfiguration -> (delayedConfiguration ()).force ()
-
     member this.addItem(configurationItem: ConfigurationItem) : Configuration =
-        match this with
-        | Configuration items -> Configuration <| items @ [ configurationItem ]
-        | DelayedConfiguration f ->
-            DelayedConfiguration
-            <| fun () -> f().addItem configurationItem
+        let (Configuration items) = this
+        Configuration <| items @ [ configurationItem ]
 
     member this.append(config: Configuration) =
-        match this, config with
-        | Configuration items, Configuration items' -> Configuration <| items @ items'
-        | Configuration _, DelayedConfiguration f ->
-            DelayedConfiguration
-            <| fun () -> this.append <| f ()
-        | DelayedConfiguration f, Configuration _ ->
-            DelayedConfiguration
-            <| fun () -> f().append config
-        | DelayedConfiguration f, DelayedConfiguration f' ->
-            DelayedConfiguration
-            <| fun () -> f().append <| f' ()
+        let (Configuration items) = this
+        let (Configuration items') = config
+        Configuration <| items @ items'
 
 type Builder() =
-    member __.Yield(()) =
-        // printfn "yield (unit)"
-        Configuration.empty
+    member __.Run(x) =
+        printfn "%A" x
+        x
+
+    member __.Quote(x) = x
+
+    member __.Yield(()) = Configuration.empty
 
     member __.Yield(configurationItem: ConfigurationItem) =
-        // printfn "yield (ConfigurationItem)"
         Configuration.singleton configurationItem
 
-    member __.YieldFrom(config: Configuration) =
-        // printfn "yieldFrom (%A)" config
-        config
+    member __.YieldFrom(config: Configuration) = config
 
-    member __.For(config: Configuration, f: unit -> Configuration) =
-        // printfn "for"
-        let r = config.append <| f ()
-        // printfn "end for"
-        r
+    member __.For(config: Configuration, f: unit -> Configuration) = config.append <| f ()
 
-    member __.Zero() =
-        // printfn "zero"
-        Configuration.empty
+    member __.Zero() = Configuration.empty
 
-    member __.Delay(f: unit -> Configuration) =
-        // printfn "delay"
-        DelayedConfiguration <| fun () -> f ()
+    member __.Delay(f: unit -> Configuration) = f ()
 
-    member __.Combine(config: Configuration, config': Configuration) =
-        // printfn "combine"
-        config.append <| config'
+    member __.Combine(config: Configuration, config': Configuration) = config.append <| config'
 
     [<CustomOperation("var")>]
     member __.Var(config: Configuration, name, value) =
-        // printfn "var"
         config.addItem (
             VarDecl
             <| VarDecl.create {| Name = name; Value = value |}
@@ -90,7 +63,6 @@ type Builder() =
 
     [<CustomOperation("rule")>]
     member __.Rule(config: Configuration, name: string, command: string) =
-        // printfn "rule"
         config.addItem (
             Rule
             <| Rule.create {| Name = name; Command = command |}
@@ -130,8 +102,10 @@ type Ninja =
         fun config ->
             let filename = filename |> Option.defaultValue "build.ninja"
 
+            let (Configuration items) = config
+
             let content =
-                config.force ()
+                items
                 |> List.map (ConfigurationItem.display)
                 |> String.concat "\n"
 
