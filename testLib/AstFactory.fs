@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module NinjaFs.TestLib.AstFactory
+module internal NinjaFs.TestLib.AstFactory
 
 open NinjaFs.TestLib.Ast
 

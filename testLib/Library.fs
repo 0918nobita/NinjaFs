@@ -4,7 +4,7 @@ module NinjaFs.TestLib.Library
 open FSharp.Quotations
 open FSharp.Quotations.Patterns
 
-let (|NewAnonRecord|_|) (expr: Expr) : option<Map<string, Expr>> =
+let private (|NewAnonRecord|_|) (expr: Expr) : option<Map<string, Expr>> =
     match expr with
     | NewRecord (ty, fields) when ty.Name.StartsWith "<>f__AnonymousType" ->
         ty.GetProperties()
@@ -49,3 +49,12 @@ type Expr with
         | Value (obj, ty) when ty = typeof<string> -> stringLiteral (obj :?> string)
         | ValueWithName (_value, _ty, "builder@") -> builderKeyword
         | _ -> failwith $"Unsupported expression: %A{target}"
+
+open Thoth.Json.Net
+
+let writeSnapshot (filename: string) (expr: Expr) =
+    let content =
+        (Expr.ToIExpr expr).encoder ()
+        |> Encode.toString 2
+
+    System.IO.File.WriteAllText(filename, content + "\n")

@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module NinjaFs.TestLib.Ast.NewAnonRecord
+module internal NinjaFs.TestLib.Ast.NewAnonRecord
 
 open Thoth.Json.Net
 

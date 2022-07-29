@@ -1,6 +1,7 @@
 module NinjaFs.Example.Program
 
 open NinjaFs
+open NinjaFs.TestLib
 
 let expr =
     ninja {
@@ -13,6 +14,9 @@ let expr =
         yield VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |})
     }
 
+writeSnapshot "test.ast.json" expr
+
+(*
 open FSharp.Quotations
 open FSharp.Quotations.Patterns
 
@@ -68,3 +72,4 @@ let printedExpr = printExpr expr
 Fantomas.Core.CodeFormatter.FormatDocumentAsync(false, printedExpr)
 |> Async.RunSynchronously
 |> printfn "%s"
+*)
