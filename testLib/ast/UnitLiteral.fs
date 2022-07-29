@@ -7,5 +7,9 @@ type UnitLiteral =
     | UnitLiteral
 
     interface IExpr with
-        member __.encoder() =
+        member __.IsSimpleExpr = true
+
+        member __.Encoder() =
             Encode.object [ ("type", Encode.string "unitLiteral") ]
+
+        member __.ReconstructSourceCode() = "()"
