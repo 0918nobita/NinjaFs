@@ -18,3 +18,5 @@ let newUnionCase = NewUnionCase
 let stringLiteral = StringLiteral
 
 let unitLiteral = UnitLiteral
+
+let varRef = VarRef

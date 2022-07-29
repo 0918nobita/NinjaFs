@@ -12,6 +12,12 @@ let expr =
         rule "link" "gcc -o $out $in"
 
         yield VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |})
+
+        yield!
+            Configuration.singleton (
+                VarDecl
+                <| VarDecl.create {| Name = "hoge"; Value = "fuga" |}
+            )
     }
 
 writeSnapshot "test.ast.json" expr
