@@ -4,9 +4,7 @@ module NinjaFs.Example.Ast.NewUnionCase
 open Thoth.Json.Net
 
 type NewUnionCase =
-    | NewUnionCase of
-        {| Name: string
-           Fields: Map<string, IExpr> |}
+    | NewUnionCase of {| Name: string; Fields: list<IExpr> |}
 
     interface IExpr with
         member this.encoder() =
@@ -16,6 +14,5 @@ type NewUnionCase =
                             ("name", Encode.string payload.Name)
                             ("fields",
                              payload.Fields
-                             |> Map.map (fun _ v -> v.encoder ())
-                             |> Map.toList
-                             |> Encode.object) ]
+                             |> List.map (fun field -> field.encoder ())
+                             |> Encode.list) ]
