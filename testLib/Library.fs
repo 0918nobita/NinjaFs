@@ -54,8 +54,10 @@ type Expr with
 open Thoth.Json.Net
 
 let writeSnapshot (filename: string) (expr: Expr) =
-    let content =
-        (Expr.ToIExpr expr).encoder ()
-        |> Encode.toString 2
+    let src = (Expr.ToIExpr expr).ReconstructSourceCode()
 
-    System.IO.File.WriteAllText(filename, content + "\n")
+    let src =
+        Fantomas.Core.CodeFormatter.FormatDocumentAsync(false, src)
+        |> Async.RunSynchronously
+
+    System.IO.File.WriteAllText(filename, src)

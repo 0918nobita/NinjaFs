@@ -2,4 +2,4 @@
 bin/
 obj/
 build.ninja
-*.ast.json
+*.snapshot
