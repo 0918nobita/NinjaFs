@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module NinjaFs.TestLib.Ast.NewUnionCase
+module internal NinjaFs.TestLib.Ast.NewUnionCase
 
 open Thoth.Json.Net
 

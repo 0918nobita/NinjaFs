@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module NinjaFs.TestLib.Ast.BuilderKeyword
+module internal NinjaFs.TestLib.Ast.BuilderKeyword
 
 open Thoth.Json.Net
 
