@@ -7,21 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="ast/Expr.fs" />
-    <Compile Include="ast/BuilderKeyword.fs" />
-    <Compile Include="ast/FunctionCall.fs" />
-    <Compile Include="ast/Lambda.fs" />
-    <Compile Include="ast/MethodCall.fs" />
-    <Compile Include="ast/NewAnonRecord.fs" />
-    <Compile Include="ast/NewUnionCase.fs" />
-    <Compile Include="ast/StringLiteral.fs" />
-    <Compile Include="ast/UnitLiteral.fs" />
-    <Compile Include="AstFactory.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../src/NinjaFs.fsproj" />
+    <ProjectReference Include="../testLib/NinjaFs.TestLib.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

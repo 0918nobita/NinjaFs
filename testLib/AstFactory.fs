@@ -1,7 +1,7 @@
 [<AutoOpen>]
-module NinjaFs.Example.AstFactory
+module NinjaFs.TestLib.AstFactory
 
-open NinjaFs.Example.Ast
+open NinjaFs.TestLib.Ast
 
 let builderKeyword = BuilderKeyword
 
