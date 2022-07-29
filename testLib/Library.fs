@@ -45,6 +45,7 @@ type Expr with
             newUnionCase
                 {| Name = unionCaseInfo.Name
                    Fields = fields |}
+        | Var var -> varRef var.Name
         | Value (obj, ty) when obj = () && ty = typeof<unit> -> unitLiteral
         | Value (obj, ty) when ty = typeof<string> -> stringLiteral (obj :?> string)
         | ValueWithName (_value, _ty, "builder@") -> builderKeyword
