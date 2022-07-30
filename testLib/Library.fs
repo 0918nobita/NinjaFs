@@ -19,6 +19,11 @@ type Expr with
         match target with
         | Call (object, method, args) ->
             match object with
+            | Some (ValueWithName (_value, _ty, "builder@")) ->
+                builderMethodCall
+                    {| Target = Expr.ToIExpr args[0]
+                       Method = method.Name
+                       Args = args[1..] |> List.map Expr.ToIExpr |}
             | Some object ->
                 let object = Expr.ToIExpr object
                 let args = args |> List.map Expr.ToIExpr
@@ -52,7 +57,6 @@ type Expr with
         | Var var -> varRef var.Name
         | Value (obj, ty) when obj = () && ty = typeof<unit> -> unitLiteral
         | Value (obj, ty) when ty = typeof<string> -> stringLiteral (obj :?> string)
-        | ValueWithName (_value, _ty, "builder@") -> builderKeyword
         | _ -> failwith $"Unsupported expression: %A{target}"
 
 let writeSnapshot (filename: string) (expr: Expr) =

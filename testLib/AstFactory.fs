@@ -3,7 +3,7 @@ module internal NinjaFs.TestLib.AstFactory
 
 open NinjaFs.TestLib.Ast
 
-let builderKeyword = BuilderKeyword
+let builderMethodCall = BuilderMethodCall
 
 let functionCall = FunctionCall
 
