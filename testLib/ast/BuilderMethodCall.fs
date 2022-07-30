@@ -1,16 +1,30 @@
 [<AutoOpen>]
 module internal NinjaFs.TestLib.Ast.BuilderMethodCall
 
+open Thoth.Json.Net
+
 type BuilderMethodCall =
     | BuilderMethodCall of
-        {| Method: string
-           Target: IExpr
-           Args: list<IExpr> |}
+        {| Target: IExpr
+           Chain: list<{| Method: string; Args: list<IExpr> |}> |}
 
     interface IExpr with
         member __.IsSimpleExpr = true
 
-        member __.Encoder() = failwith "not implemented"
+        member this.Encoder() =
+            let (BuilderMethodCall payload) = this
+
+            Encode.object [ ("type", Encode.string "builderMethodCall")
+                            ("target", payload.Target.Encoder())
+                            ("chain",
+                             payload.Chain
+                             |> List.map (fun call ->
+                                 Encode.object [ ("method", Encode.string call.Method)
+                                                 ("args",
+                                                  call.Args
+                                                  |> List.map (fun arg -> arg.Encoder())
+                                                  |> Encode.list) ])
+                             |> Encode.list) ]
 
         member this.ReconstructSourceCode() =
             let (BuilderMethodCall payload) = this
@@ -22,20 +36,26 @@ type BuilderMethodCall =
                 else
                     $"({target})"
 
-            let args =
-                if List.isEmpty payload.Args then
-                    ""
-                else
-                    payload.Args
-                    |> List.map (fun arg ->
-                        let isSimpleExpr = arg.IsSimpleExpr
-                        let arg = arg.ReconstructSourceCode()
-
-                        if isSimpleExpr then
-                            arg
+            let chain =
+                payload.Chain
+                |> List.map (fun call ->
+                    let args =
+                        if List.isEmpty call.Args then
+                            ""
                         else
-                            $"(%s{arg})")
-                    |> String.concat ", "
-                    |> sprintf ", %s"
+                            call.Args
+                            |> List.map (fun arg ->
+                                let isSimpleExpr = arg.IsSimpleExpr
+                                let arg = arg.ReconstructSourceCode()
 
-            $"%s{target} |>> builder.%s{payload.Method}(_r%s{args})"
+                                if isSimpleExpr then
+                                    arg
+                                else
+                                    $"(%s{arg})")
+                            |> String.concat ", "
+                            |> sprintf ", %s"
+
+                    $"|>> builder.%s{call.Method}(_r%s{args})")
+                |> String.concat " "
+
+            $"%s{target} %s{chain}"

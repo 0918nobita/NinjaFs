@@ -20,10 +20,23 @@ type Expr with
         | Call (object, method, args) ->
             match object with
             | Some (ValueWithName (_value, _ty, "builder@")) ->
-                builderMethodCall
-                    {| Target = Expr.ToIExpr args[0]
-                       Method = method.Name
-                       Args = args[1..] |> List.map Expr.ToIExpr |}
+                let target = Expr.ToIExpr args[0]
+
+                match target with
+                | :? Ast.BuilderMethodCall.BuilderMethodCall as (Ast.BuilderMethodCall.BuilderMethodCall payload) ->
+                    builderMethodCall
+                        {| Target = payload.Target
+                           Chain =
+                            payload.Chain
+                            @ [ {| Method = method.Name
+                                   Args = args[1..] |> List.map Expr.ToIExpr |} ] |}
+                | _ ->
+                    builderMethodCall
+                        {| Target = target
+                           Chain =
+                            [ {| Method = method.Name
+                                 Args = args[1..] |> List.map Expr.ToIExpr |} ] |}
+
             | Some object ->
                 let object = Expr.ToIExpr object
                 let args = args |> List.map Expr.ToIExpr
@@ -59,11 +72,9 @@ type Expr with
         | Value (obj, ty) when ty = typeof<string> -> stringLiteral (obj :?> string)
         | _ -> failwith $"Unsupported expression: %A{target}"
 
+open Thoth.Json.Net
+
 let writeSnapshot (filename: string) (expr: Expr) =
-    let src = (Expr.ToIExpr expr).ReconstructSourceCode()
+    let content = Encode.toString 2 ((Expr.ToIExpr expr).Encoder())
 
-    let src =
-        Fantomas.Core.CodeFormatter.FormatDocumentAsync(false, src)
-        |> Async.RunSynchronously
-
-    System.IO.File.WriteAllText(filename, src)
+    System.IO.File.WriteAllText(filename, $"{content}\n")
