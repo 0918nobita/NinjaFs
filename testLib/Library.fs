@@ -29,7 +29,11 @@ type Expr with
                        Args = args |}
             | None ->
                 let args = args |> List.map Expr.ToIExpr
-                functionCall {| Func = method.Name; Args = args |}
+
+                let func =
+                    $"%s{method.DeclaringType.Namespace}.%s{method.DeclaringType.Name}.%s{method.Name}"
+
+                functionCall {| Func = func; Args = args |}
         | Lambda (var, body) ->
             let body = Expr.ToIExpr body
             lambda {| VarName = var.Name; Body = body |}
@@ -50,8 +54,6 @@ type Expr with
         | Value (obj, ty) when ty = typeof<string> -> stringLiteral (obj :?> string)
         | ValueWithName (_value, _ty, "builder@") -> builderKeyword
         | _ -> failwith $"Unsupported expression: %A{target}"
-
-open Thoth.Json.Net
 
 let writeSnapshot (filename: string) (expr: Expr) =
     let src = (Expr.ToIExpr expr).ReconstructSourceCode()
