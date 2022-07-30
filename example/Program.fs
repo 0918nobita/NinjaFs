@@ -20,4 +20,4 @@ let expr =
             )
     }
 
-writeSnapshot "test.snapshot" expr
+writeSnapshot "ce.json" expr
