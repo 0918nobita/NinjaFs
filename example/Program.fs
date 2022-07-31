@@ -4,7 +4,7 @@ open NinjaFs
 open NinjaFs.TestLib
 
 let expr =
-    ninja {
+    <@ ninja {
         var "builddir" "build"
 
         rule "compile" "gcc -c -o $out $in"
@@ -18,6 +18,8 @@ let expr =
                 VarDecl
                 <| VarDecl.create {| Name = "hoge"; Value = "fuga" |}
             )
-    }
+    } @>
 
-writeSnapshot "ce.json" expr
+writeJson "ce.json" expr
+
+writeSrc "ce.txt" expr

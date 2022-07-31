@@ -33,12 +33,6 @@ type Configuration =
         Configuration <| items @ items'
 
 type Builder() =
-    member __.Run(x) =
-        printfn "%A" x
-        x
-
-    member __.Quote(x) = x
-
     member __.Yield(()) = Configuration.empty
 
     member __.Yield(configurationItem: ConfigurationItem) =
@@ -70,7 +64,6 @@ type Builder() =
 
     [<CustomOperation("build")>]
     member __.Build(config: Configuration, outputs: Build.Outputs, ruleName: string, inputs: Build.Inputs) =
-        // printfn "build"
         config.addItem (
             Build
             <| Build.create
