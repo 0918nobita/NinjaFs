@@ -5,11 +5,13 @@ open FSharp.Quotations.Patterns
 
 [<RequireQualifiedAccess>]
 type Expr =
+    | Application of func: Expr * arg: Expr
     | FunctionCall of func: string * args: list<Expr>
     | Lambda of var: string * body: Expr
     | MethodCall of object: Expr * method: string * args: list<Expr>
     | NewAnonRecord of Map<string, Expr>
     | NewUnionCase of name: string * fields: list<Expr>
+    | StaticPropertyGet of object: string * property: string
     | StringLiteral of value: string
     | UnitLiteral
     | VarRef of name: string
@@ -23,13 +25,19 @@ module Expr =
         | Expr.StringLiteral _
         | Expr.UnitLiteral
         | Expr.VarRef _ -> true
+        | Expr.Application _
         | Expr.FunctionCall _
         | Expr.Lambda _
         | Expr.MethodCall _
-        | Expr.NewUnionCase _ -> false
+        | Expr.NewUnionCase _
+        | Expr.StaticPropertyGet _ -> false
 
     let rec jsonEncode =
         function
+        | Expr.Application (func, arg) ->
+            Encode.object [ ("type", Encode.string "application")
+                            ("func", jsonEncode func)
+                            ("arg", jsonEncode arg) ]
         | Expr.FunctionCall (func, args) ->
             Encode.object [ ("type", Encode.string "functionCall")
                             ("func", Encode.string func)
@@ -45,13 +53,17 @@ module Expr =
                             ("args", encodeList args) ]
         | Expr.NewAnonRecord fields ->
             fields
-            |> Map.map (fun _k v -> jsonEncode v)
+            |> Map.map (fun _k -> jsonEncode)
             |> Map.toList
             |> Encode.object
         | Expr.NewUnionCase (name, fields) ->
             Encode.object [ ("type", Encode.string "newUnionCase")
                             ("name", Encode.string name)
                             ("fields", encodeList fields) ]
+        | Expr.StaticPropertyGet (object, property) ->
+            Encode.object [ ("type", Encode.string "staticPropertyGet")
+                            ("object", Encode.string object)
+                            ("property", Encode.string property) ]
         | Expr.StringLiteral value ->
             Encode.object [ ("type", Encode.string "stringLiteral")
                             ("value", Encode.string value) ]
@@ -65,6 +77,10 @@ module Expr =
 
     let rec toSrc: Expr -> string =
         function
+        | Expr.Application (func, arg) ->
+            let func = toSrcWithParen func
+            let arg = toSrcWithParen arg
+            $"%s{func} %s{arg}"
         | Expr.FunctionCall (func, args) ->
             let args =
                 args
@@ -90,8 +106,7 @@ module Expr =
                 |> Map.map (fun k v ->
                     let v = toSrcWithParen v
                     $"%s{k} = %s{v}")
-                |> Map.toList
-                |> List.map snd
+                |> Map.values
                 |> String.concat "; "
 
             $"{{| %s{fields} |}}"
@@ -106,9 +121,12 @@ module Expr =
                     |> sprintf "(%s)"
 
             $"%s{name}%s{fields}"
+        | Expr.StaticPropertyGet (object, property) -> $"%s{object}.%s{property}"
         | Expr.StringLiteral value -> $"\"%s{value}\""
         | Expr.UnitLiteral -> "()"
-        | Expr.VarRef name -> $"%s{name}"
+        | Expr.VarRef name ->
+            let name = name.Replace("@", "_at")
+            $"%s{name}"
 
     and private toSrcWithParen (expr: Expr) =
         let src = toSrc expr
@@ -130,6 +148,7 @@ module Expr =
 
     let rec fromQuotationsExpr (expr: Quotations.Expr) : Expr =
         match expr with
+        | Application (func, arg) -> Expr.Application(func = fromQuotationsExpr func, arg = fromQuotationsExpr arg)
         | Call (object, method, args) ->
             match object with
             | Some object ->
@@ -144,29 +163,40 @@ module Expr =
 
                 Expr.FunctionCall(func, args)
         | Lambda (var, body) ->
+            let var = var.Name.Replace("@", "_at")
             let body = fromQuotationsExpr body
-            Expr.Lambda(var.Name, body)
+            Expr.Lambda(var, body)
         | NewAnonRecord fields ->
-            let fields =
-                fields
-                |> Map.map (fun _ field -> fromQuotationsExpr field)
+            let fields = fields |> Map.map (fun _ -> fromQuotationsExpr)
 
             Expr.NewAnonRecord fields
         | NewUnionCase (unionCaseInfo, fields) ->
             let fields = fields |> List.map fromQuotationsExpr
 
             Expr.NewUnionCase(unionCaseInfo.Name, fields)
+        | PropertyGet (None, prop, []) -> Expr.StaticPropertyGet(object = prop.DeclaringType.Name, property = prop.Name)
         | Var var -> Expr.VarRef var.Name
         | Value (:? unit, ty) when ty = typeof<unit> -> Expr.UnitLiteral
         | Value (:? string as v, ty) when ty = typeof<string> -> Expr.StringLiteral v
         | ValueWithName (_value, _ty, name) -> Expr.VarRef name
         | _ -> failwith $"Unsupported expression: %A{expr}"
 
-let writeSnapshot (filename: string) (expr: Quotations.Expr) =
+open System.IO
+
+let writeJson (filename: string) (expr: Quotations.Expr) =
     let content =
         expr
         |> Expr.fromQuotationsExpr
         |> Expr.jsonEncode
         |> Encode.toString 2
 
-    System.IO.File.WriteAllText(filename, $"{content}\n")
+    File.WriteAllText(filename, $"{content}\n")
+
+let writeSrc (filename: string) (expr: Quotations.Expr) =
+    let src = expr |> Expr.fromQuotationsExpr |> Expr.toSrc
+
+    let src =
+        Fantomas.Core.CodeFormatter.FormatDocumentAsync(false, src)
+        |> Async.RunSynchronously
+
+    File.WriteAllText(filename, src)
