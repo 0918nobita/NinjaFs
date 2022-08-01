@@ -13,11 +13,7 @@ let expr =
 
         yield VarDecl(VarDecl.create {| Name = "foo"; Value = "bar" |})
 
-        yield!
-            Configuration.singleton (
-                VarDecl
-                <| VarDecl.create {| Name = "hoge"; Value = "fuga" |}
-            )
+        yield! ninja { var "hoge" "fuga" }
     } @>
 
 writeJson "ce.json" expr
