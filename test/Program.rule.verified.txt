@@ -1,0 +1,3 @@
+﻿(fun builder_at ->
+    (fun unitVar -> () |>> builder_at.Yield() |>> builder_at.Rule("compile", "gcc -c -o $out $in"))
+    |>> builder_at.Delay()) (CE.ninja)

@@ -1,11 +1,23 @@
 ﻿open Expecto
+open NinjaFs
+open NinjaFs.TestLib
+open VerifyExpecto
 
-let tests =
-    test "A simple test" {
-        let subject = "Hello, world"
-        Expect.equal subject "Hello, world" "The strings should be equal"
+[<Tests>]
+let varTest =
+    testTask "var" {
+        let expr = <@ ninja { var "builddir" "build" } @>
+
+        do! Verifier.Verify("var", Expr.toSrcStr expr)
+    }
+
+[<Tests>]
+let ruleTest =
+    testTask "rule" {
+        let expr = <@ ninja { rule "compile" "gcc -c -o $out $in" } @>
+
+        do! Verifier.Verify("rule", Expr.toSrcStr expr)
     }
 
 [<EntryPoint>]
-let main args =
-    runTestsWithArgs defaultConfig args tests
+let main args = runTestsInAssembly defaultConfig args
