@@ -7,4 +7,9 @@
   <ItemGroup>
     <Compile Include="Program.fs" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Expecto" Version="9.0.4" />
+    <PackageReference Include="Verify.Expecto" Version="17.5.0" />
+  </ItemGroup>
 </Project>
