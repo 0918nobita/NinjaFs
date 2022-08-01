@@ -239,27 +239,18 @@ module Expr =
             let args = args |> List.map flatten
             Expr.MethodCall(object, method, args)
 
-open System.IO
+    let toJsonStr (expr: Quotations.Expr) =
+        let content =
+            expr
+            |> fromQuotationsExpr
+            |> flatten
+            |> jsonEncode
+            |> Encode.toString 2
 
-let writeJson (filename: string) (expr: Quotations.Expr) =
-    let content =
-        expr
-        |> Expr.fromQuotationsExpr
-        |> Expr.flatten
-        |> Expr.jsonEncode
-        |> Encode.toString 2
+        $"{content}\n"
 
-    File.WriteAllText(filename, $"{content}\n")
+    let toSrcStr (expr: Quotations.Expr) =
+        let src = expr |> fromQuotationsExpr |> flatten |> toSrc
 
-let writeSrc (filename: string) (expr: Quotations.Expr) =
-    let src =
-        expr
-        |> Expr.fromQuotationsExpr
-        |> Expr.flatten
-        |> Expr.toSrc
-
-    let src =
         Fantomas.Core.CodeFormatter.FormatDocumentAsync(false, src)
         |> Async.RunSynchronously
-
-    File.WriteAllText(filename, src)

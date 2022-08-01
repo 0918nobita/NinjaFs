@@ -16,6 +16,8 @@ let expr =
         yield! ninja { var "hoge" "fuga" }
     } @>
 
-writeJson "ce.json" expr
+open System.IO
 
-writeSrc "ce.txt" expr
+File.WriteAllText("ce.json", Expr.toJsonStr expr)
+
+File.WriteAllText("ce.txt", Expr.toSrcStr expr)
