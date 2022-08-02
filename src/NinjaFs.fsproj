@@ -4,13 +4,15 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>NinjaFs</AssemblyName>
     <RootNamespace>NinjaFs</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Kodai Matsumoto</Authors>
     <Copyright>2022 Kodai Matsumoto</Copyright>
     <Description>A toolkit for generating build.ninja from F# (script)</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageTags>f# FSharp Build</PackageTags>
+    <PackageProjectUrl>https://github.com/0918nobita/NinjaFs</PackageProjectUrl>
+    <PackageTags>F# FSharp Build</PackageTags>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/0918nobita/NinjaFs.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/0918nobita/NinjaFs</RepositoryUrl>
     <Version>0.1.0</Version>
   </PropertyGroup>
 
