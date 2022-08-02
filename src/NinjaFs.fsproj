@@ -14,7 +14,7 @@
     <PackageTags>F# FSharp Build</PackageTags>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/0918nobita/NinjaFs</RepositoryUrl>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
