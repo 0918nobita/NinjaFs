@@ -4,21 +4,38 @@
 
 A toolkit for generating `build.ninja` from F# script
 
-## Install dependencies
+```fsharp
+#r "nuget: NinjaFs"
+
+open NinjaFs
+
+ninja {
+    var "builddir" "build"
+
+    rule "compile" "gcc -c -o $out $in"
+
+    build [ "build/main.o" ] "compile" [ "src/main.c" ]
+}
+|> Ninja.generate()
+```
+
+## Development
+
+### Install dependencies
 
 ```bash
 dotnet restore
 dotnet tool restore
 ```
 
-## Example
+### Example
 
 
 ```bash
 dotnet run --project example
 ```
 
-## Generate API documentation
+### Generate API documentation
 
 ```bash
 dotnet build
