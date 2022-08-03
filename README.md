@@ -35,6 +35,12 @@ dotnet tool restore
 dotnet run --project example
 ```
 
+## Run tests
+
+```bash
+dotnet run --project test
+```
+
 ### Generate API documentation
 
 ```bash
