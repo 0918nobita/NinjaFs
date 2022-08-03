@@ -3,13 +3,4 @@
 bin/
 obj/
 
-build.ninja
-
-ce.json
-ce.txt
-
 *.received.*
-
-.fsdocs/
-output/
-tmp/
