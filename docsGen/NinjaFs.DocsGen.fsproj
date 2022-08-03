@@ -12,5 +12,6 @@
   <ItemGroup>
     <PackageReference Include="FSharp.Compiler.Service" Version="41.0.5" />
     <PackageReference Include="FSharp.Formatting" Version="15.0.1" />
+    <PackageReference Include="Giraffe.ViewEngine" Version="2.0.0-alpha-1" />
   </ItemGroup>
 </Project>
