@@ -5,6 +5,8 @@ open FSharp.Formatting.ApiDocs
 let docModel =
     ApiDocs.GenerateModel([ ApiDocInput.FromFile("src/bin/Debug/netstandard2.0/NinjaFs.dll") ], "NinjaFs", [])
 
+let searchIndexEntries = ApiDocs.SearchIndexEntriesForModel(docModel)
+
 let collection = docModel.Collection
 
 let rec dumpEntities (indent: int) : list<ApiDocEntity> -> unit =
