@@ -22,7 +22,29 @@ let rec dumpEntities (indent: int) : list<ApiDocEntity> -> unit =
 
             dumpEntities (indent + 2) entity.NestedEntities)
 
-collection.Namespaces
-|> List.iter (fun ns ->
-    printfn "%s" ns.Name
-    ns.Entities |> dumpEntities 0)
+open Giraffe.ViewEngine
+
+let htmlDoc =
+    let namespaces =
+        collection.Namespaces
+        |> List.map (fun ns ->
+            li [] [
+                a [ _href (ns.Url("", "NinjaFs", true, ".html")) ] [
+                    str ns.Name
+                ]
+            ])
+
+    html [ _lang "ja" ] [
+        head [] [
+            meta [ _charset "utf-8" ]
+            title [] [ str "NinjaFs API Reference" ]
+        ]
+        body
+            []
+            ([ h2 [] [ str "NinjaFs API Reference" ] ]
+             @ [ ul [] namespaces ])
+    ]
+
+htmlDoc
+|> RenderView.AsString.htmlDocument
+|> (fun content -> System.IO.File.WriteAllText("docs/index.html", content + "\n"))
