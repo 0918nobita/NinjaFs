@@ -29,7 +29,7 @@ let htmlDoc =
         collection.Namespaces
         |> List.map (fun ns ->
             li [] [
-                a [ _href (ns.Url("", "NinjaFs", true, ".html")) ] [
+                a [ _href (ns.Url(root = "", collectionName = "NinjaFs", qualify = true, extension = ".html")) ] [
                     str ns.Name
                 ]
             ])
