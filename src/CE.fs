@@ -1,3 +1,6 @@
+/// <namespacedoc><summary>A toolkit for generating build.ninja from F# (script)</summary></namespacedoc>
+/// <summary>コンピュテーション式の定義</summary>
+
 [<AutoOpen>]
 module NinjaFs.CE
 
