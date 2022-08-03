@@ -7,13 +7,22 @@ let docModel =
 
 let collection = docModel.Collection
 
+let rec dumpEntities (indent: int) (entities: list<ApiDocEntity>) =
+    if List.isEmpty entities then
+        ()
+    else
+        let indentStr = String.replicate indent " "
+
+        entities
+        |> List.iter (fun entity ->
+            printfn "%s[%s]" indentStr entity.Name
+
+            entity.AllMembers
+            |> List.iter (fun mem -> printfn "%s  - %s" indentStr mem.Name)
+
+            dumpEntities (indent + 2) entity.NestedEntities)
+
 collection.Namespaces
 |> List.iter (fun ns ->
     printfn "%s" ns.Name
-
-    ns.Entities
-    |> List.iter (fun entity ->
-        printfn "  %s" entity.Name
-
-        printfn "    (%s)"
-        <| entity.Url("https://0918nobita.github.io/NinjaFs/", collection.CollectionName, true, ".fs")))
+    ns.Entities |> dumpEntities 0)
