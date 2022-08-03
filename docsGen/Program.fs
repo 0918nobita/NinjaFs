@@ -7,10 +7,10 @@ let docModel =
 
 let collection = docModel.Collection
 
-let rec dumpEntities (indent: int) (entities: list<ApiDocEntity>) =
-    if List.isEmpty entities then
-        ()
-    else
+let rec dumpEntities (indent: int) : list<ApiDocEntity> -> unit =
+    function
+    | [] -> ()
+    | entities ->
         let indentStr = String.replicate indent " "
 
         entities
