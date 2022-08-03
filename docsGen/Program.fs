@@ -24,19 +24,26 @@ let rec dumpEntities (indent: int) : list<ApiDocEntity> -> unit =
 
 open Giraffe.ViewEngine
 
-let htmlDoc =
+let indexPage =
     let namespaces =
         collection.Namespaces
         |> List.map (fun ns ->
-            li [] [
-                a [ _href (ns.Url(root = "", collectionName = "NinjaFs", qualify = true, extension = ".html")) ] [
-                    str ns.Name
-                ]
-            ])
+            li
+                []
+                ([ a [ _href (ns.Url(root = "", collectionName = "", qualify = false, extension = ".html")) ] [
+                       code [] [ str ns.Name ]
+                   ] ]
+                 @ (ns.NamespaceDocs
+                    |> Option.map (fun doc -> [ span [] [ rawText doc.Summary.HtmlText ] ])
+                    |> Option.defaultValue [])))
 
     html [ _lang "ja" ] [
         head [] [
             meta [ _charset "utf-8" ]
+            link [ _rel "stylesheet"
+                   _href "https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css" ]
+            link [ _rel "stylesheet"
+                   _href "global.css" ]
             title [] [ str "NinjaFs API Reference" ]
         ]
         body
@@ -45,6 +52,54 @@ let htmlDoc =
              @ [ ul [] namespaces ])
     ]
 
-htmlDoc
+let referencePages =
+    collection.Namespaces
+    |> List.map (fun ns ->
+        let name = ns.Name
+
+        let entities =
+            ns.Entities
+            |> List.map (fun entity ->
+                li [] [
+                    code [] [ str entity.Name ]
+                    span [] [
+                        rawText entity.Comment.Summary.HtmlText
+                    ]
+                ])
+
+        (ns.Url(root = "docs/", collectionName = "", qualify = false, extension = ".html"),
+         html [ _lang "ja" ] [
+             head [] [
+                 meta [ _charset "utf-8" ]
+                 link [ _rel "stylesheet"
+                        _href "https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css" ]
+                 link [ _rel "stylesheet"
+                        _href "../global.css" ]
+                 title [] [
+                     str $"{name} | NinjaFs API Reference"
+                 ]
+             ]
+             body [] [
+                 h2 [] [ str name ]
+                 ul [] entities
+             ]
+         ]))
+
+open System.IO
+
+indexPage
 |> RenderView.AsString.htmlDocument
-|> (fun content -> System.IO.File.WriteAllText("docs/index.html", content + "\n"))
+|> (fun content -> File.WriteAllText("docs/index.html", content + "\n"))
+
+Directory.CreateDirectory("docs/reference")
+|> ignore
+
+referencePages
+|> List.map (fun (path, htmlDoc) ->
+    let content = RenderView.AsString.htmlDocument htmlDoc
+
+    File.WriteAllTextAsync(path, content)
+    |> Async.AwaitTask)
+|> Async.Parallel
+|> Async.RunSynchronously
+|> ignore
