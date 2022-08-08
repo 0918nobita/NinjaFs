@@ -48,10 +48,12 @@ let indexPage =
                    _href "global.css" ]
             title [] [ str "NinjaFs API Reference" ]
         ]
-        body
-            []
-            ([ h2 [] [ str "NinjaFs API Reference" ] ]
-             @ [ ul [] namespaces ])
+        body [] [
+            main
+                []
+                ([ h2 [] [ str "NinjaFs API Reference" ] ]
+                 @ [ ul [] namespaces ])
+        ]
     ]
 
 let referencePages =
@@ -82,8 +84,10 @@ let referencePages =
                  ]
              ]
              body [] [
-                 h2 [] [ str name ]
-                 ul [] entities
+                 main [] [
+                     h2 [] [ str name ]
+                     ul [] entities
+                 ]
              ]
          ]))
 

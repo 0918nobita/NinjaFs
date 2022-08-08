@@ -7,3 +7,18 @@
 code {
     font-family: 'Fira Code', monospace;
 }
+
+main {
+    padding: 2em;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #111;
+        color: #eee;
+    }
+
+    a {
+        color: #0bd;
+    }
+}
