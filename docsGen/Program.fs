@@ -69,7 +69,7 @@ let referencePages =
                     ]
                 ])
 
-        (ns.Url(root = "docs/", collectionName = "", qualify = false, extension = ".html"),
+        (ns.Url(root = "public/", collectionName = "", qualify = false, extension = ".html"),
          html [ _lang "ja" ] [
              head [] [
                  meta [ _charset "utf-8" ]
@@ -91,9 +91,9 @@ open System.IO
 
 indexPage
 |> RenderView.AsString.htmlDocument
-|> (fun content -> File.WriteAllText("docs/index.html", content + "\n"))
+|> (fun content -> File.WriteAllText("public/index.html", content + "\n"))
 
-Directory.CreateDirectory("docs/reference")
+Directory.CreateDirectory("public/reference")
 |> ignore
 
 referencePages
