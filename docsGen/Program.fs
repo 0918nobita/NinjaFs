@@ -1,11 +1,11 @@
-﻿module NinjaFs.DocsGen
+﻿module NinjaFs.DocsGen.Program
 
 open FSharp.Formatting.ApiDocs
 
 let docModel =
     ApiDocs.GenerateModel([ ApiDocInput.FromFile("src/bin/Debug/netstandard2.0/NinjaFs.dll") ], "NinjaFs", [])
 
-let searchIndexEntries = ApiDocs.SearchIndexEntriesForModel(docModel)
+Search.genSearchIndex docModel
 
 let collection = docModel.Collection
 
